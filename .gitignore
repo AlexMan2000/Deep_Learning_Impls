@@ -1,0 +1,7 @@
+**/venv/
+**/.idea/
+**/datasets/
+**/Virtual_EnvironmentsAnaconda/
+*.zip
+**/model.bin
+**/model.bin.optim

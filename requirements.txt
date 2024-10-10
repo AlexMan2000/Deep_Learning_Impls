@@ -1,0 +1,12 @@
+numpy
+scipy
+tqdm
+docopt
+nltk
+torchvision
+torch
+torchinfo
+sentencepiece
+lxml==5.0.0
+sacrebleu
+tensorboard
