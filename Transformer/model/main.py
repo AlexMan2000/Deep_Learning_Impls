@@ -1,4 +1,4 @@
-from Transformer.TransformerModel import *
+from Transformer.model.TransformerModel import *
 from utils import *
 
 def createData():
@@ -51,4 +51,4 @@ if __name__ == "__main__":
         src_padding_mask=src_padding_mask,
         tgt_ahead_mask=tgt_ahead_mask,
         tgt_padding_mask=tgt_padding_mask)
-    print(decoder_output)
+    print(decoder_output.shape)

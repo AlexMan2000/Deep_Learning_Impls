@@ -1,8 +1,6 @@
-import os
-import sys
 import argparse
 import torch
-from TransformerModel import PositionalEncoding
+from Transformer.model.TransformerModel import PositionalEncoding
 def test_positional_encoding():
     position = PositionalEncoding(d_model=10, dropout=0.5)
     pos_1 = torch.tensor([8.4147e-01, 5.4030e-01, 1.5783e-01, 9.8747e-01, 2.5116e-02,
