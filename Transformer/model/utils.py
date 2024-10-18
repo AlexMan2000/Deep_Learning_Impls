@@ -1,4 +1,4 @@
-from common_import import *
+from .common_import import *
 def create_padding_mask(seq, pad_token=0):
     """
     当输入的src是(batch_size, seq_len)的未经过embedding的形态时,
@@ -57,47 +57,26 @@ def create_ahead_mask(seq_len, start_seq=1):
     return mask  # (seq_len, seq_len)
 
 
-
 class PositionalEncoding(nn.Module):
-    """
-    - 位置编码完全没有使用我们embedding层输出的具体值，而仅仅利用了输出的形状，所以位置编码与语义无关
-    - 位置编码层没有任何需要学习的参数，于是用不到nn.Parameter
-    - max_seq_len旨在帮助我们的位置编码快速预先计算好所有的正余弦函数值，让代码执行速度更快
-    """
-    def __init__(self, d_model, dropout, max_seq_len=5000):
-        super().__init__()
-
-        self.dropout = nn.Dropout(dropout)
-        positional_matrix = torch.zeros((max_seq_len, d_model))
-
-        position = torch.arange(0, max_seq_len).unsqueeze(1)  # (max_seq_len, 1), waiting to be broadcasted
-        div_term = torch.exp(
-            torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model)
-        ) # (d_model // 2 + 1, )
-
-        # position * div_term will be (max_seq_len, d_model)
-        # 预先计算好max_seq_len个位置的编码，在前向传播的过程中仅需要索引即可，速度是很快的
-        positional_matrix[:, 0::2] = torch.sin(position * div_term)
-
-        if d_model % 2 == 1:
-            positional_matrix[:, 1::2] = torch.cos(position * div_term[:-1])
+    def __init__(self, d_model, dropout=0.1, max_len=512, batch_first=True):
+        super(PositionalEncoding, self).__init__()
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        if batch_first:
+            pe = pe.unsqueeze(0)
         else:
-            positional_matrix[:, 1::2] = torch.cos(position * div_term)
+            pe = pe.unsqueeze(0).transpose(0, 1)
+        self.register_buffer('pe', pe)
 
-        # Used for those parameters that are fixed/not learnable, but are used across training and testing
-        # Used for faster retrieval
-        self.register_buffer("pe", positional_matrix)
+        self.batch_first = batch_first
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        """
-        Input should be the embedding src token sequence
-        :param x: (batch_size, seq_len, d_model)
-        :return: dropout(x + pe)
-        """
-        pe = self.pe.unsqueeze(0) # (1, seq_len, d_model), broadcast it across all samples in the batch
-
-        # This disabling grad is optional since pe is not a learnable parameter by definition
-        x = x + pe[:, :x.size(1)].requires_grad_(False)
+        if self.batch_first:
+            x = x + self.pe[:, :x.size(1), :]
+        else:
+            x = x + self.pe[:x.size(0), :]
         return self.dropout(x)
-
-

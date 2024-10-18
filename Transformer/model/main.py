@@ -1,4 +1,5 @@
 from Transformer.model.TransformerModel import *
+from EncoderOnlyTransformer import *
 from utils import *
 
 def createData():
@@ -39,16 +40,34 @@ def createEncoderDecoder():
     return model
 
 
+def createEncoderOnlyModel():
+    encoderOnlyModel = EncoderOnlyTransformer(
+        src_vocab_size=10,
+        d_model=512,
+        num_head=8,
+        num_encoder_layers=6,
+        d_ff=2048
+    )
+
+    return encoderOnlyModel
+
+
 if __name__ == "__main__":
     model = createEncoderDecoder()
+    encoderModel = createEncoderOnlyModel()
     src_seq, tgt_seq = createData()
     src_padding_mask = create_padding_mask(src_seq, 0)
     tgt_padding_mask = create_padding_mask(tgt_seq, 0)
     tgt_ahead_mask = create_ahead_mask(tgt_seq.size(1))
-    decoder_output = model(
+    # decoder_output = model(
+    #     src=src_seq,
+    #     tgt=tgt_seq,
+    #     src_padding_mask=src_padding_mask,
+    #     tgt_ahead_mask=tgt_ahead_mask,
+    #     tgt_padding_mask=tgt_padding_mask)
+    # print(decoder_output.shape)
+    encoder_output = encoderModel(
         src=src_seq,
-        tgt=tgt_seq,
-        src_padding_mask=src_padding_mask,
-        tgt_ahead_mask=tgt_ahead_mask,
-        tgt_padding_mask=tgt_padding_mask)
-    print(decoder_output.shape)
+        src_padding_mask=src_padding_mask
+    )
+    print(encoder_output.shape)

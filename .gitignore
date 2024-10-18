@@ -5,3 +5,6 @@
 *.zip
 **/model.bin
 **/model.bin.optim
+**/downloaded_models
+**/DownloadedModels
+**/Cache
